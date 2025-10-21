@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,17 +14,41 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
 
   void _login() async {
+    if (_usernameController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('用户名和密码不能为空')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 1)); // 模拟网络
+    final result = await ApiService.login(
+      _usernameController.text,
+      _passwordController.text,
+    );
 
     setState(() {
       _isLoading = false;
     });
 
-    Navigator.pop(context, true);
+    if (result['success']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+      Navigator.pop(context, {
+        'success': true,
+        'username': _usernameController.text,
+        'is_admin': result['is_admin'] ?? false,
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+    }
   }
 
   @override
