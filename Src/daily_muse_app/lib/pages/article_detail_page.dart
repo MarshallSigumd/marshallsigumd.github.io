@@ -90,7 +90,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     // 过滤掉所有可能的多余空行，确保段落间只有我们需要的间距
     final paragraphs = content
         .split(RegExp(r'\n{2,}|\r\n\r\n'))
-        .where((p) => p.trim().isNotEmpty)
+        .where((p) => p.isNotEmpty)
         .toList();
 
     return Column(
@@ -98,8 +98,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       children: paragraphs.map((paragraph) {
         // 进一步处理，将段落内多余的换行符替换为空格
         String cleanedParagraph = paragraph
-            .replaceAll(RegExp(r'\n|\r\n'), ' ')
-            .trim();
+            .replaceAll(RegExp(r'\n|\r\n'), ' ');
 
         // 应用缩进格式化
         String formattedParagraph = _formatArticleContent(cleanedParagraph);
@@ -113,7 +112,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
               height: 1.6, // 调整行高，提升阅读舒适度
               letterSpacing: 0.2,
             ),
-            textAlign: TextAlign.justify,
+            textAlign: TextAlign.start,
           ),
         );
       }).toList(),
