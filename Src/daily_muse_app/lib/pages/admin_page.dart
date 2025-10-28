@@ -8,9 +8,10 @@ class AdminPage extends StatefulWidget {
   _AdminPageState createState() => _AdminPageState();
 }
 
-class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixin {
+class _AdminPageState extends State<AdminPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // 文章相关
   final _articleTitleController = TextEditingController();
   final _articleContentController = TextEditingController();
@@ -59,9 +60,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
       });
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
       }
     }
   }
@@ -78,9 +79,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
       });
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
       }
     }
   }
@@ -90,9 +91,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     if (_articleTitleController.text.isEmpty ||
         _articleContentController.text.isEmpty ||
         _articleAuthorController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写所有字段')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请填写所有字段')));
       return;
     }
 
@@ -105,17 +106,17 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     setState(() => _isLoadingArticle = false);
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
       _articleTitleController.clear();
       _articleContentController.clear();
       _articleAuthorController.clear();
       _loadArticles();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
@@ -123,9 +124,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
   Future<void> _addQuote() async {
     if (_quoteContentController.text.isEmpty ||
         _quoteAuthorController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写名言内容和作者')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请填写名言内容和作者')));
       return;
     }
 
@@ -138,17 +139,17 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     setState(() => _isLoadingQuote = false);
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
       _quoteContentController.clear();
       _quoteAuthorController.clear();
       _quoteCategoryController.clear();
       _loadQuotes();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
@@ -206,12 +207,12 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                 contentController.text,
                 authorController.text,
               );
-              
+
               if (mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result['message'])),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(result['message'])));
                 if (result['success']) {
                   _loadArticles();
                 }
@@ -228,7 +229,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
   void _showEditQuoteDialog(Map<String, dynamic> quote) {
     final contentController = TextEditingController(text: quote['content']);
     final authorController = TextEditingController(text: quote['author']);
-    final categoryController = TextEditingController(text: quote['category'] ?? '');
+    final categoryController = TextEditingController(
+      text: quote['category'] ?? '',
+    );
 
     showDialog(
       context: context,
@@ -278,12 +281,12 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                 authorController.text,
                 categoryController.text,
               );
-              
+
               if (mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result['message'])),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(result['message'])));
                 if (result['success']) {
                   _loadQuotes();
                 }
@@ -310,9 +313,7 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('删除'),
           ),
         ],
@@ -322,9 +323,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     if (confirm == true) {
       final result = await ApiService.deleteArticle(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
         if (result['success']) {
           _loadArticles();
         }
@@ -346,9 +347,7 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('删除'),
           ),
         ],
@@ -358,9 +357,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     if (confirm == true) {
       final result = await ApiService.deleteQuote(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
         if (result['success']) {
           _loadQuotes();
         }
@@ -372,9 +371,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
   Future<void> _setTodayArticle(int id) async {
     final result = await ApiService.setTodayArticle(id);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
       if (result['success']) {
         _loadArticles();
       }
@@ -385,9 +384,9 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
   Future<void> _setTodayQuote(int id) async {
     final result = await ApiService.setTodayQuote(id);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
       if (result['success']) {
         _loadQuotes();
       }
@@ -470,7 +469,10 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                     children: [
                       const Text(
                         '文章列表',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
@@ -482,95 +484,104 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                   _isLoadingArticles
                       ? const Center(child: CircularProgressIndicator())
                       : _articles.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text('暂无文章'),
-                              ),
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _articles.length,
-                              itemBuilder: (context, index) {
-                                final article = _articles[index];
-                                final isToday = article['is_today'] == 1;
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  color: isToday ? Colors.blue.shade50 : null,
-                                  child: ListTile(
-                                    title: Text(
-                                      article['title'] ?? '',
-                                      style: TextStyle(
-                                        fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Text('暂无文章'),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _articles.length,
+                          itemBuilder: (context, index) {
+                            final article = _articles[index];
+                            final isToday = article['is_today'] == 1;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              color: isToday ? Colors.blue.shade50 : null,
+                              child: ListTile(
+                                title: Text(
+                                  article['title'] ?? '',
+                                  style: TextStyle(
+                                    fontWeight: isToday
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('作者: ${article['author'] ?? ''}'),
+                                    if (isToday)
+                                      const Text(
+                                        '⭐ 今日文章',
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                trailing: PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('编辑'),
+                                        ],
                                       ),
                                     ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('作者: ${article['author'] ?? ''}'),
-                                        if (isToday)
-                                          const Text(
-                                            '⭐ 今日文章',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    trailing: PopupMenuButton(
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'edit',
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.edit, size: 20),
-                                              SizedBox(width: 8),
-                                              Text('编辑'),
-                                            ],
-                                          ),
+                                    if (!isToday)
+                                      const PopupMenuItem(
+                                        value: 'set_today',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.star, size: 20),
+                                            SizedBox(width: 8),
+                                            Text('设为今日文章'),
+                                          ],
                                         ),
-                                        if (!isToday)
-                                          const PopupMenuItem(
-                                            value: 'set_today',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.star, size: 20),
-                                                SizedBox(width: 8),
-                                                Text('设为今日文章'),
-                                              ],
-                                            ),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete,
+                                            size: 20,
+                                            color: Colors.red,
                                           ),
-                                        const PopupMenuItem(
-                                          value: 'delete',
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.delete, size: 20, color: Colors.red),
-                                              SizedBox(width: 8),
-                                              Text('删除', style: TextStyle(color: Colors.red)),
-                                            ],
+                                          SizedBox(width: 8),
+                                          Text(
+                                            '删除',
+                                            style: TextStyle(color: Colors.red),
                                           ),
-                                        ),
-                                      ],
-                                      onSelected: (value) {
-                                        switch (value) {
-                                          case 'edit':
-                                            _showEditArticleDialog(article);
-                                            break;
-                                          case 'set_today':
-                                            _setTodayArticle(article['id']);
-                                            break;
-                                          case 'delete':
-                                            _deleteArticle(article['id']);
-                                            break;
-                                        }
-                                      },
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  ],
+                                  onSelected: (value) {
+                                    switch (value) {
+                                      case 'edit':
+                                        _showEditArticleDialog(article);
+                                        break;
+                                      case 'set_today':
+                                        _setTodayArticle(article['id']);
+                                        break;
+                                      case 'delete':
+                                        _deleteArticle(article['id']);
+                                        break;
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ],
               ),
             ),
@@ -635,7 +646,10 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                     children: [
                       const Text(
                         '名言列表',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
@@ -647,97 +661,107 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                   _isLoadingQuotes
                       ? const Center(child: CircularProgressIndicator())
                       : _quotes.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text('暂无名言'),
-                              ),
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _quotes.length,
-                              itemBuilder: (context, index) {
-                                final quote = _quotes[index];
-                                final isToday = quote['is_today'] == 1;
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  color: isToday ? Colors.blue.shade50 : null,
-                                  child: ListTile(
-                                    title: Text(
-                                      quote['content'] ?? '',
-                                      style: TextStyle(
-                                        fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Text('暂无名言'),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _quotes.length,
+                          itemBuilder: (context, index) {
+                            final quote = _quotes[index];
+                            final isToday = quote['is_today'] == 1;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              color: isToday ? Colors.blue.shade50 : null,
+                              child: ListTile(
+                                title: Text(
+                                  quote['content'] ?? '',
+                                  style: TextStyle(
+                                    fontWeight: isToday
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('作者: ${quote['author'] ?? ''}'),
+                                    if (quote['category'] != null &&
+                                        quote['category'].toString().isNotEmpty)
+                                      Text('分类: ${quote['category']}'),
+                                    if (isToday)
+                                      const Text(
+                                        '⭐ 今日名言',
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                trailing: PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('编辑'),
+                                        ],
                                       ),
                                     ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('作者: ${quote['author'] ?? ''}'),
-                                        if (quote['category'] != null && quote['category'].toString().isNotEmpty)
-                                          Text('分类: ${quote['category']}'),
-                                        if (isToday)
-                                          const Text(
-                                            '⭐ 今日名言',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    trailing: PopupMenuButton(
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'edit',
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.edit, size: 20),
-                                              SizedBox(width: 8),
-                                              Text('编辑'),
-                                            ],
-                                          ),
+                                    if (!isToday)
+                                      const PopupMenuItem(
+                                        value: 'set_today',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.star, size: 20),
+                                            SizedBox(width: 8),
+                                            Text('设为今日名言'),
+                                          ],
                                         ),
-                                        if (!isToday)
-                                          const PopupMenuItem(
-                                            value: 'set_today',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.star, size: 20),
-                                                SizedBox(width: 8),
-                                                Text('设为今日名言'),
-                                              ],
-                                            ),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete,
+                                            size: 20,
+                                            color: Colors.red,
                                           ),
-                                        const PopupMenuItem(
-                                          value: 'delete',
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.delete, size: 20, color: Colors.red),
-                                              SizedBox(width: 8),
-                                              Text('删除', style: TextStyle(color: Colors.red)),
-                                            ],
+                                          SizedBox(width: 8),
+                                          Text(
+                                            '删除',
+                                            style: TextStyle(color: Colors.red),
                                           ),
-                                        ),
-                                      ],
-                                      onSelected: (value) {
-                                        switch (value) {
-                                          case 'edit':
-                                            _showEditQuoteDialog(quote);
-                                            break;
-                                          case 'set_today':
-                                            _setTodayQuote(quote['id']);
-                                            break;
-                                          case 'delete':
-                                            _deleteQuote(quote['id']);
-                                            break;
-                                        }
-                                      },
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  ],
+                                  onSelected: (value) {
+                                    switch (value) {
+                                      case 'edit':
+                                        _showEditQuoteDialog(quote);
+                                        break;
+                                      case 'set_today':
+                                        _setTodayQuote(quote['id']);
+                                        break;
+                                      case 'delete':
+                                        _deleteQuote(quote['id']);
+                                        break;
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ],
               ),
             ),
