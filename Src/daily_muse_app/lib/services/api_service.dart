@@ -279,4 +279,218 @@ class ApiService {
       return {'success': false, 'message': '网络错误: $e'};
     }
   }
+
+  // 获取文章列表
+  static Future<Map<String, dynamic>> getArticles(
+      {int page = 1, int limit = 100}) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/articles?page=$page&limit=$limit'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data['data']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 更新文章
+  static Future<Map<String, dynamic>> updateArticle(
+      int id, String title, String content, String author) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/article/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode(
+            {'title': title, 'content': content, 'author': author}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 删除文章
+  static Future<Map<String, dynamic>> deleteArticle(int id) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/admin/article/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 设置今日文章
+  static Future<Map<String, dynamic>> setTodayArticle(int id) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/admin/article/set-today/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 获取名言列表
+  static Future<Map<String, dynamic>> getQuotes(
+      {int page = 1, int limit = 100}) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/quotes?page=$page&limit=$limit'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data['data']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 更新名言
+  static Future<Map<String, dynamic>> updateQuote(
+      int id, String content, String author, String category) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/quote/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode(
+            {'content': content, 'author': author, 'category': category}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 删除名言
+  static Future<Map<String, dynamic>> deleteQuote(int id) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/admin/quote/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // 设置今日名言
+  static Future<Map<String, dynamic>> setTodayQuote(int id) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/admin/quote/set-today/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
 }
