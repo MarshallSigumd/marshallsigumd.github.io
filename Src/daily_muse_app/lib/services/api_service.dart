@@ -31,7 +31,9 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> register(
-      String username, String password) async {
+    String username,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/register'),
@@ -54,7 +56,9 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> login(
-      String username, String password) async {
+    String username,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
@@ -70,7 +74,7 @@ class ApiService {
           'success': true,
           'message': data['message'],
           'token': data['token'],
-          'is_admin': data['is_admin'] ?? false
+          'is_admin': data['is_admin'] ?? false,
         };
       } else {
         final data = jsonDecode(response.body);
@@ -95,6 +99,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        // data['data'] 现在包含 is_favorited 字段
         return {'success': true, 'data': data['data']};
       } else if (response.statusCode == 404) {
         return {'success': false, 'message': '暂无今日文章'};
@@ -121,6 +126,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        // data['data'] 现在包含 is_favorited 字段
         return {'success': true, 'data': data['data']};
       } else if (response.statusCode == 404) {
         return {'success': false, 'message': '暂无今日名言'};
@@ -133,8 +139,71 @@ class ApiService {
     }
   }
 
+  // ==================== 新增：收藏相关 ====================
+
+  static Future<Map<String, dynamic>> toggleFavorite(
+    int id,
+    String itemType,
+  ) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/favorite/toggle'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'item_id': id, 'item_type': itemType}),
+      );
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        // 返回的数据包含 { message: '...', favorited: true/false }
+        return {'success': true, ...data};
+      } else {
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getFavorites() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': '请先登录'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/favorites'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // data['data'] 包含 { articles: [], quotes: [] }
+        return {'success': true, 'data': data['data']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '网络错误: $e'};
+    }
+  }
+
+  // =======================================================
+
   static Future<Map<String, dynamic>> addArticle(
-      String title, String content, String author) async {
+    String title,
+    String content,
+    String author,
+  ) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -145,10 +214,13 @@ class ApiService {
         Uri.parse('$baseUrl/admin/article/add'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(
-            {'title': title, 'content': content, 'author': author}),
+        body: jsonEncode({
+          'title': title,
+          'content': content,
+          'author': author,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -164,7 +236,10 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> addQuote(
-      String content, String author, String category) async {
+    String content,
+    String author,
+    String category,
+  ) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -175,10 +250,13 @@ class ApiService {
         Uri.parse('$baseUrl/admin/quote/add'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(
-            {'content': content, 'author': author, 'category': category}),
+        body: jsonEncode({
+          'content': content,
+          'author': author,
+          'category': category,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -194,7 +272,10 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> initAdmin(
-      String username, String password, String secretKey) async {
+    String username,
+    String password,
+    String secretKey,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/admin/init'),
@@ -202,7 +283,7 @@ class ApiService {
         body: jsonEncode({
           'username': username,
           'password': password,
-          'secret_key': secretKey
+          'secret_key': secretKey,
         }),
       );
 
@@ -213,7 +294,7 @@ class ApiService {
         return {
           'success': true,
           'message': data['message'],
-          'token': data['token']
+          'token': data['token'],
         };
       } else {
         final data = jsonDecode(response.body);
@@ -249,7 +330,9 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateNotificationSettings(
-      bool articleEnabled, bool quoteEnabled) async {
+    bool articleEnabled,
+    bool quoteEnabled,
+  ) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -260,11 +343,11 @@ class ApiService {
         Uri.parse('$baseUrl/notification/settings'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
           'article_enabled': articleEnabled,
-          'quote_enabled': quoteEnabled
+          'quote_enabled': quoteEnabled,
         }),
       );
 
@@ -281,8 +364,10 @@ class ApiService {
   }
 
   // 获取文章列表
-  static Future<Map<String, dynamic>> getArticles(
-      {int page = 1, int limit = 100}) async {
+  static Future<Map<String, dynamic>> getArticles({
+    int page = 1,
+    int limit = 100,
+  }) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -308,7 +393,11 @@ class ApiService {
 
   // 更新文章
   static Future<Map<String, dynamic>> updateArticle(
-      int id, String title, String content, String author) async {
+    int id,
+    String title,
+    String content,
+    String author,
+  ) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -319,10 +408,13 @@ class ApiService {
         Uri.parse('$baseUrl/admin/article/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(
-            {'title': title, 'content': content, 'author': author}),
+        body: jsonEncode({
+          'title': title,
+          'content': content,
+          'author': author,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -388,8 +480,10 @@ class ApiService {
   }
 
   // 获取名言列表
-  static Future<Map<String, dynamic>> getQuotes(
-      {int page = 1, int limit = 100}) async {
+  static Future<Map<String, dynamic>> getQuotes({
+    int page = 1,
+    int limit = 100,
+  }) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -415,7 +509,11 @@ class ApiService {
 
   // 更新名言
   static Future<Map<String, dynamic>> updateQuote(
-      int id, String content, String author, String category) async {
+    int id,
+    String content,
+    String author,
+    String category,
+  ) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -426,10 +524,13 @@ class ApiService {
         Uri.parse('$baseUrl/admin/quote/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(
-            {'content': content, 'author': author, 'category': category}),
+        body: jsonEncode({
+          'content': content,
+          'author': author,
+          'category': category,
+        }),
       );
 
       if (response.statusCode == 200) {

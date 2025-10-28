@@ -74,12 +74,32 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // ==================== 新增：用户收藏表 ====================
+    db.run(`
+      CREATE TABLE IF NOT EXISTS user_favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        item_type TEXT NOT NULL, -- 'article' 或 'quote'
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (username) REFERENCES users(username)
+      )
+    `);
+    
+    // 为收藏表创建唯一索引，防止重复收藏
+    db.run(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_item 
+      ON user_favorites (username, item_id, item_type)
+    `);
+    // ========================================================
 
     console.log('数据库表初始化完成');
   });
 }
 
 // ==================== 工具函数 ====================
+// ... (generateToken, verifyToken, getUserInfo, authenticateToken, verifyAdmin 保持不变)
 // 生成简单的token
 function generateToken(username) {
   return Buffer.from(username + ':' + Date.now()).toString('base64');
@@ -137,8 +157,8 @@ function verifyAdmin(req, res, next) {
     next();
   });
 }
-
 // ==================== 管理员初始化接口 ====================
+// ... (app.post('/admin/init', ...) 保持不变)
 // 默认初始化密钥，可通过环境变量覆盖
 const ADMIN_INIT_SECRET = process.env.ADMIN_INIT_SECRET || 'daily_muse_secret_2024';
 
@@ -208,9 +228,8 @@ app.post('/admin/init', (req, res) => {
     });
   });
 });
-
 // ==================== 用户认证相关接口 ====================
-
+// ... (app.post('/register', ...) 和 app.post('/login', ...) 保持不变)
 // 注册接口
 app.post('/register', (req, res) => {
   const { username, password } = req.body;
@@ -272,10 +291,9 @@ app.post('/login', (req, res) => {
     }
   );
 });
-
 // ==================== 文章相关接口 ====================
 
-// 获取今日文章
+// 获取今日文章 (修改：增加 is_favorited 字段)
 app.get('/article/today', authenticateToken, (req, res) => {
   db.get(
     'SELECT * FROM articles WHERE is_today = 1 ORDER BY published_at DESC LIMIT 1',
@@ -286,14 +304,31 @@ app.get('/article/today', authenticateToken, (req, res) => {
       if (!article) {
         return res.status(404).json({ message: '暂无今日文章' });
       }
-      res.json({
-        message: '获取今日文章成功',
-        data: article
-      });
+
+      // 检查用户是否收藏
+      db.get(
+        'SELECT 1 FROM user_favorites WHERE username = ? AND item_id = ? AND item_type = ?',
+        [req.username, article.id, 'article'],
+        (err, fav) => {
+          if (err) {
+             // 即使查询失败，也应返回文章
+            console.error('查询收藏失败:', err);
+            article.is_favorited = false;
+          } else {
+            article.is_favorited = !!fav; // !!fav 将 (null 或 {1:1}) 转为 (false 或 true)
+          }
+          
+          res.json({
+            message: '获取今日文章成功',
+            data: article
+          });
+        }
+      );
     }
   );
 });
 
+// ... (app.get('/articles', ...), app.post('/admin/article/add', ...), app.put('/admin/article/:id', ...), app.delete('/admin/article/:id', ...) 保持不变)
 // 获取所有文章（分页）
 app.get('/articles', authenticateToken, (req, res) => {
   const page = req.query.page || 1;
@@ -379,10 +414,9 @@ app.delete('/admin/article/:id', authenticateToken, verifyAdmin, (req, res) => {
     res.json({ message: '文章删除成功' });
   });
 });
-
 // ==================== 名言相关接口 ====================
 
-// 获取今日名言
+// 获取今日名言 (修改：增加 is_favorited 字段)
 app.get('/quote/today', authenticateToken, (req, res) => {
   db.get(
     'SELECT * FROM quotes WHERE is_today = 1 ORDER BY published_at DESC LIMIT 1',
@@ -393,14 +427,30 @@ app.get('/quote/today', authenticateToken, (req, res) => {
       if (!quote) {
         return res.status(404).json({ message: '暂无今日名言' });
       }
-      res.json({
-        message: '获取今日名言成功',
-        data: quote
-      });
+
+      // 检查用户是否收藏
+      db.get(
+        'SELECT 1 FROM user_favorites WHERE username = ? AND item_id = ? AND item_type = ?',
+        [req.username, quote.id, 'quote'],
+        (err, fav) => {
+          if (err) {
+            console.error('查询收藏失败:', err);
+            quote.is_favorited = false;
+          } else {
+            quote.is_favorited = !!fav;
+          }
+          
+          res.json({
+            message: '获取今日名言成功',
+            data: quote
+          });
+        }
+      );
     }
   );
 });
 
+// ... (app.get('/quotes', ...), app.post('/admin/quote/add', ...), app.put('/admin/quote/:id', ...), app.delete('/admin/quote/:id', ...) 保持不变)
 // 获取所有名言（分页）
 app.get('/quotes', authenticateToken, (req, res) => {
   const page = req.query.page || 1;
@@ -486,9 +536,8 @@ app.delete('/admin/quote/:id', authenticateToken, verifyAdmin, (req, res) => {
     res.json({ message: '名言删除成功' });
   });
 });
-
 // ==================== 用户通知设置相关接口 ====================
-
+// ... (app.get('/notification/settings', ...) 和 app.post('/notification/settings', ...) 保持不变)
 // 获取用户通知设置
 app.get('/notification/settings', authenticateToken, (req, res) => {
   db.get(
@@ -574,8 +623,112 @@ app.post('/notification/settings', authenticateToken, (req, res) => {
     }
   );
 });
+// ==================== 新增：收藏相关接口 ====================
+
+// 切换收藏状态（添加/移除）
+app.post('/favorite/toggle', authenticateToken, (req, res) => {
+  const { item_id, item_type } = req.body;
+  const { username } = req;
+
+  if (!item_id || !item_type) {
+    return res.status(400).json({ message: '缺少 item_id 或 item_type' });
+  }
+
+  if (item_type !== 'article' && item_type !== 'quote') {
+    return res.status(400).json({ message: '无效的 item_type' });
+  }
+
+  // 1. 检查是否已收藏
+  db.get(
+    'SELECT id FROM user_favorites WHERE username = ? AND item_id = ? AND item_type = ?',
+    [username, item_id, item_type],
+    (err, favorite) => {
+      if (err) {
+        return res.status(500).json({ message: '查询收藏失败' });
+      }
+
+      if (favorite) {
+        // 2a. 已收藏 -> 删除
+        db.run(
+          'DELETE FROM user_favorites WHERE id = ?',
+          [favorite.id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ message: '取消收藏失败' });
+            }
+            res.json({
+              message: '已取消收藏',
+              favorited: false
+            });
+          }
+        );
+      } else {
+        // 2b. 未收藏 -> 添加
+        db.run(
+          'INSERT INTO user_favorites (username, item_id, item_type) VALUES (?, ?, ?)',
+          [username, item_id, item_type],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ message: '添加收藏失败' });
+            }
+            res.json({
+              message: '已添加收藏',
+              favorited: true
+            });
+          }
+        );
+      }
+    }
+  );
+});
+
+// 获取用户的所有收藏
+app.get('/favorites', authenticateToken, (req, res) => {
+  const { username } = req;
+  const responseData = {
+    articles: [],
+    quotes: []
+  };
+
+  // 1. 获取收藏的文章
+  db.all(
+    `SELECT a.* FROM articles a 
+     JOIN user_favorites f ON a.id = f.item_id 
+     WHERE f.username = ? AND f.item_type = 'article'
+     ORDER BY f.created_at DESC`,
+    [username],
+    (err, articles) => {
+      if (err) {
+        return res.status(500).json({ message: '获取收藏的文章失败' });
+      }
+      responseData.articles = articles;
+
+      // 2. 获取收藏的名言
+      db.all(
+        `SELECT q.* FROM quotes q
+         JOIN user_favorites f ON q.id = f.item_id
+         WHERE f.username = ? AND f.item_type = 'quote'
+         ORDER BY f.created_at DESC`,
+        [username],
+        (err, quotes) => {
+          if (err) {
+            return res.status(500).json({ message: '获取收藏的名言失败' });
+          }
+          responseData.quotes = quotes;
+
+          // 3. 返回合并的结果
+          res.json({
+            message: '获取收藏列表成功',
+            data: responseData
+          });
+        }
+      );
+    }
+  );
+});
 
 // ==================== 定时任务 ====================
+// ... (schedule.scheduleJob(...) 保持不变)
 // 每天午夜0:00执行一次，更新今日文章和名言
 schedule.scheduleJob('0 0 * * *', () => {
   console.log('执行定时任务：更新今日文章和名言');
@@ -622,9 +775,8 @@ schedule.scheduleJob('0 0 * * *', () => {
     }
   );
 });
-
 // ==================== 手动设置今日内容的接口（管理员）====================
-
+// ... (app.post('/admin/article/set-today/:id', ...) 和 app.post('/admin/quote/set-today/:id', ...) 保持不变)
 // 手动设置今日文章
 app.post('/admin/article/set-today/:id', authenticateToken, verifyAdmin, (req, res) => {
   const { id } = req.params;
@@ -670,7 +822,6 @@ app.post('/admin/quote/set-today/:id', authenticateToken, verifyAdmin, (req, res
     });
   });
 });
-
 // ==================== 启动服务器 ====================
 app.listen(3000, () => {
   console.log('后端已启动，端口 3000');
