@@ -12,6 +12,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
+
 // ==================== 数据库初始化 ====================
 const dbPath = path.join(__dirname, 'daily_muse.db');
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -822,8 +824,17 @@ app.post('/admin/quote/set-today/:id', authenticateToken, verifyAdmin, (req, res
     });
   });
 });
+
+app.use(express.static(path.join(__dirname, '../daily_muse_app/build/web')));
+
+// 处理 SPA 路由 - 所有未匹配的路由返回 index.html
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../daily_muse_app/build/web/index.html'));
+});
+
 // ==================== 启动服务器 ====================
-app.listen(3000, () => {
-  console.log('后端已启动，端口 3000');
-  console.log('定时任务已启动，每天午夜00:00更新今日内容');
+app.listen(3000, '0.0.0.0', () => {
+  console.log('🚀 后端已启动，监听地址: 0.0.0.0:3000');
+  console.log('📱 其他设备可通过以下地址访问:');
+  console.log('   http://222.20.103.65:3000');
 });
